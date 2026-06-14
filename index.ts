@@ -33,11 +33,10 @@ const setPackagePaths = (luaState: LuaState, ...paths: string[]) => {
 const setModPackagePaths = (luaState: LuaState, modName: string) => {
     setPackagePaths(
         luaState,
-        '../factorio-data/core/lualib/?.lua',
-        '../factorio-data/core/?.lua',
-        `../factorio-data/${modName}/?.lua`,
         './mods/?.lua',
         `./mods/__${modName}__/?.lua`,
+        './mods/__core__/?.lua',
+        './mods/__core__/lualib/?.lua',
     );
 }
 
@@ -49,6 +48,7 @@ const initLua = () => {
     luaState.setGlobal('data', { raw: dataRaw });
     luaState.evalFile('util_scripts/data_setup.lua');
     luaState.evalFile('util_scripts/defines.lua');
+    luaState.evalFile('util_scripts/require_handler.lua');
 
     /*Lua 5.3 deprecates math.atan2, but Factorio is on Lua 5.2.1
     Could downgrade Lua, but for now this patch seems to do it */
@@ -64,23 +64,28 @@ const initMod = (luaState: LuaState, modName: string) => {
 
 let lua = initLua();
 
+lua.setGlobal('suppress_require_errors', true);
+
+initMod(lua, 'core');
+
+lua.evalFile('mods/__core__/data.lua');
+
 initMod(lua, 'base');
 
-lua.evalFile('../factorio-data/core/data.lua');
-lua.evalFile('../factorio-data/base/data.lua');
-lua.evalFile('../factorio-data/base/data-updates.lua');
+lua.evalFile('mods/__base__/data.lua');
+lua.evalFile('mods/__base__/data-updates.lua');
 
 initMod(lua, 'quality');
-lua.evalFile('../factorio-data/quality/data.lua');
-lua.evalFile('../factorio-data/quality/data-updates.lua');
+lua.evalFile('mods/__quality__/data.lua');
+lua.evalFile('mods/__quality__/data-updates.lua');
 
 initMod(lua, 'elevated-rails');
-lua.evalFile('../factorio-data/elevated-rails/data.lua');
+lua.evalFile('mods/__elevated-rails__/data.lua');
 
 initMod(lua, 'space-age');
 
-lua.evalFile('../factorio-data/space-age/data.lua');
-lua.evalFile('../factorio-data/space-age/data-updates.lua');
+lua.evalFile('mods/__space-age__/data.lua');
+lua.evalFile('mods/__space-age__/data-updates.lua');
 //lua.eval("package.path = './mods/test-mod/?.lua;' .. package.path")
 //lua.evalFile('./mods/test-mod/data.lua');
 
