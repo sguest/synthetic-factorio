@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
-        "types": ["factorio-types", "node"]
+        "types": ["factorio-types", "node"],
+        "allowImportingTsExtensions": true
     }
 }
