@@ -1,11 +1,13 @@
 import { LuaState } from 'lua-state';
+import type { LuaValue } from 'lua-state'
 import { cpSync, existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 export class FactorioEngine
 {
     public luaState: LuaState;
-    private mods: string[] = [];
+    private mods: { [key: string]: string } = {};
+    private settings?: runtime.LuaSettings;
 
     constructor() {
         this.luaState = this.initLua();
@@ -13,14 +15,54 @@ export class FactorioEngine
     }
 
     public addMod(modName: string, sourcePath: string) {
-        this.mods.push(modName);
         const targetPath = this.getModPath(modName);
         if(!existsSync(targetPath)) {
-            cpSync(sourcePath, targetPath);
+            cpSync(sourcePath, targetPath, { recursive: true });
         }
+        const modInfo = this.getModInfo(modName);
+        this.mods[modName] = modInfo.version;
+        this.luaState.setGlobal('mods', this.mods);
+    }
+
+    public runSettingsPhase() {
+        const modOrder = this.getModOrder();
+
+        for(let mod of modOrder) {
+            this.runModFile(mod, 'settings.lua')
+        }
+
+        const data = this.getRawData() as unknown as { [key: string]: { [key: string]: settings.dataExtendType } };
+
+        const settings: runtime.LuaSettings = {
+            startup: {},
+            global: {},
+            player_default: {},
+            object_name: 'settings',
+            get_player_settings: () => settings.player_default,
+        };
+
+        for(let settingType of ['bool-setting', 'int-setting', 'double-setting', 'string-setting', 'color-setting']) {
+            if(data[settingType]) {
+                for(let name in data[settingType]) {
+                    let setting = data[settingType][name];
+                    if(setting.setting_type === 'startup') {
+                        settings.startup[setting.name] = { value: setting.default_value } as runtime.ModSetting;
+                    }
+                    else if(setting.setting_type === 'runtime-global') {
+                        settings.global[setting.name] = { value: setting.default_value } as runtime.ModSetting;
+                    }
+                    else if(setting.setting_type === 'runtime-per-user') {
+                        settings.player_default[setting.name] = { value: setting.default_value } as runtime.ModSetting;
+                    }
+                }
+            }
+        }
+
+        this.settings = settings;
     }
 
     public runDataPhase() {
+        this.luaState.setGlobal('settings', { startup: this.settings?.startup as unknown as LuaValue })
         const modOrder = this.getModOrder();
 
         for(let mod of modOrder) {
@@ -36,8 +78,8 @@ export class FactorioEngine
         }
     }
 
-    public getRawData() {
-        return this.luaState.getGlobal('data.raw');
+    public getRawData(): prototype.dataCollection {
+        return (this.luaState.getGlobal('data.raw') || {}) as unknown as prototype.dataCollection;
     }
 
     private runModFile(modName: string, fileName: string) {
@@ -51,10 +93,10 @@ export class FactorioEngine
 
     private getModOrder() {
         let modGraph: {[key: string]: string[]} = {};
-        for(let mod of this.mods) {
-            let modInfo = JSON.parse(readFileSync(path.join(this.getModPath(mod), 'info.json'), 'utf-8'));
-            let dependentMods = modInfo.dependencies.map((d: string) => d.split(' ')[0]);
-            modGraph[mod] = dependentMods;
+        for(let modName in this.mods) {
+            let modInfo = this.getModInfo(modName);
+            let dependentMods = (modInfo.dependencies as string[]).map(d => d.split(' ')[0]).filter(d => d !== '!' && d !== '?');
+            modGraph[modName] = dependentMods;
         }
         let modOrder: string[] = [];
 
@@ -76,7 +118,8 @@ export class FactorioEngine
             }
 
             if(!targetMod) {
-                throw new Error('Circular dependency graph detected');
+                // todo - better feedback as to what broke
+                throw new Error('Dependency graph error');
             }
 
             modOrder.push(targetMod);
@@ -96,6 +139,10 @@ export class FactorioEngine
 
     private getModPath(modName: string) {
         return path.join(import.meta.dirname, `../mods/__${modName}__`);
+    }
+
+    private getModInfo(modName: string) {
+        return JSON.parse(readFileSync(path.join(this.getModPath(modName), 'info.json'), 'utf-8'));
     }
 
     private initLua() {

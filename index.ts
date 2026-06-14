@@ -30,6 +30,9 @@ engine.addMod('space-age', '../factorio-data/space-age');
 engine.addMod('base', '../factorio-data/base');
 engine.addMod('quality', '../factorio-data/quality');
 engine.addMod('elevated-rails', '../factorio-data/elevated-rails');
+engine.addMod('simple-seablock', '../simple-seablock/dist/SimpleSeablock');
+
+engine.runSettingsPhase();
 
 engine.runDataPhase();
 
