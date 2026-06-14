@@ -1,0 +1,19 @@
+{
+  "name": "synthetic-factorio",
+  "version": "0.0.1",
+  "description": "Synthetic Factorio runtime for unit testing",
+  "license": "ISC",
+  "author": "Spencer Guest",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "lua-state": "^1.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "factorio-types": "^1.2.58"
+  }
+}
