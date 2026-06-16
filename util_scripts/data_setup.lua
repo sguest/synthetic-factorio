@@ -8,7 +8,8 @@ data.raw = data.raw or {}
 
 function data.extend(self, values)
     for i, value in ipairs(values) do
-        -- space-age tries to extend on the string "./data/__space-age__/sound/ambient/space/interlude-6/interlude-6.lua" (i.e. not a valid prototype object, just that string)
+        -- space-age tries to extend on the string "./data/__space-age__/sound/ambient/space/interlude-6/interlude-6.lua" 
+        -- (i.e. not a valid prototype object, just that string) so we need to gracefully handle invalid objects
         if(value.name ~= nil and value.type ~= nil) then
             data.raw[value.type] = data.raw[value.type] or {}
             data.raw[value.type][value.name] = value

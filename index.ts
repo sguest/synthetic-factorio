@@ -1,39 +1,21 @@
 import { FactorioEngine } from './src/FactorioEngine.ts';
+import { ModManager } from './src/ModManager.ts';
+import { loadEnvFile } from 'node:process';
 
-const fixValue = (value: any) => {
-    if(typeof value !== 'object') {
-        return value;
-    }
+loadEnvFile();
 
-    // lua-state turns arrays into objects with numeric keys starting at 1, so assume this should be an array
-    if(value[1]) {
-        let arr = [];
+var manager = new ModManager();
+manager.installVanillaMods();
+manager.installPortalMod('SimpleSeablock');
+manager.installPortalMod('space-is-fake', { omitDependencies: ['cr-commons'] });
+manager.installPortalMod('any-planet-start');
 
-        for(let key in value) {
-            arr.push(value[key]);
-        }
-
-        return arr;
-    }
-
-    let returnValue = {} as any;
-
-    for(let key in value) {
-        returnValue[key] = fixValue(value[key]);
-    }
-
-    return returnValue;
-}
-
-var engine = new FactorioEngine();
-engine.addMod('space-age', '../factorio-data/space-age');
-engine.addMod('base', '../factorio-data/base');
-engine.addMod('quality', '../factorio-data/quality');
-engine.addMod('elevated-rails', '../factorio-data/elevated-rails');
-engine.addMod('simple-seablock', '../simple-seablock/dist/SimpleSeablock');
-
+var engine = new FactorioEngine({
+    mods: ['base', 'space-age', 'quality', 'elevated-rails', 'SimpleSeablock', 'space-is-fake'],
+    ignoredDependencies: ['cr-commons'],
+    logHandler: () => {},
+});
 engine.runSettingsPhase();
-
 engine.runDataPhase();
 
 //console.log(engine.getRawData());

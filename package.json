@@ -10,10 +10,16 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "lua-state": "^1.2.0"
+    "env-paths": "^4.0.0",
+    "extract-zip": "^2.0.1",
+    "glob": "^13.0.6",
+    "lua-state": "^1.2.0",
+    "node-fetch": "^3.3.2",
+    "semver-compare": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",
+    "@types/semver-compare": "^1.0.3",
     "factorio-types": "^1.2.58"
   }
 }
