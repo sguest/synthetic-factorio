@@ -16,6 +16,7 @@ var engine = new FactorioEngine({
     logHandler: () => {},
 });
 engine.runSettingsPhase();
+engine.setSettings({ startup: { 'simple-seablock-disable-pumpjacks': false }});
 engine.runDataPhase();
 
-//console.log(engine.getRawData());
+console.log(engine.getRawData()['item']['pumpjack']);

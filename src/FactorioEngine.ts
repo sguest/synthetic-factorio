@@ -25,6 +25,21 @@ export interface FactorioEngineOptions {
     logHandler?: (message: string) => void
 }
 
+type SettingValue = number | boolean | string | runtime.Color;
+
+interface SettingsData {
+    global?: Record<string, SettingValue>,
+    player?: Record<string, SettingValue>,
+    startup?: Record<string, SettingValue>
+}
+
+interface SettingsHolder {
+    global: Record<string, runtime.ModSetting>
+    player_default: Record<string, runtime.ModSetting>
+    startup: Record<string, runtime.ModSetting>
+    get_player_settings: () => Record<string, runtime.ModSetting>
+}
+
 /**
  * A synthetic factorio runtime to run lua scripts and inspect their results
  */
@@ -34,7 +49,7 @@ export class FactorioEngine
     public readonly mods: string[];
     public readonly modDir: string;
 
-    private settings?: runtime.LuaSettings;
+    private settings: SettingsHolder;
     private ignoredDependencies: string[];
     private logHandler: (message: string) => void;
 
@@ -44,6 +59,13 @@ export class FactorioEngine
         this.modDir = options.modDir || modDir();
         this.ignoredDependencies = options.ignoredDependencies || [];
         this.logHandler = options.logHandler || console.log;
+        this.settings = {
+            startup: {},
+            global: {},
+            player_default: {},
+            // This should handle proper per-player settings, good enough for now
+            get_player_settings: () => settings.player_default,
+        };
     }
 
     /**
@@ -62,12 +84,10 @@ export class FactorioEngine
 
         const data = this.getRawData() as unknown as { [key: string]: { [key: string]: settings.dataExtendType } };
 
-        const settings: runtime.LuaSettings = {
+        const settingsData: SettingsData = {
             startup: {},
             global: {},
-            player_default: {},
-            object_name: 'settings',
-            get_player_settings: () => settings.player_default,
+            player: {},
         };
 
         for(let settingType of ['bool-setting', 'int-setting', 'double-setting', 'string-setting', 'color-setting']) {
@@ -75,19 +95,19 @@ export class FactorioEngine
                 for(let name in data[settingType]) {
                     let setting = data[settingType][name];
                     if(setting.setting_type === 'startup') {
-                        settings.startup[setting.name] = { value: setting.default_value } as runtime.ModSetting;
+                        settingsData.startup![setting.name] = setting.default_value as SettingValue;
                     }
                     else if(setting.setting_type === 'runtime-global') {
-                        settings.global[setting.name] = { value: setting.default_value } as runtime.ModSetting;
+                        settingsData.global![setting.name] = setting.default_value as SettingValue;
                     }
                     else if(setting.setting_type === 'runtime-per-user') {
-                        settings.player_default[setting.name] = { value: setting.default_value } as runtime.ModSetting;
+                        settingsData.player![setting.name] = setting.default_value as SettingValue;
                     }
                 }
             }
         }
 
-        this.settings = settings;
+        this.setSettings(settingsData);
     }
 
     /**
@@ -128,6 +148,24 @@ export class FactorioEngine
      */
     public getRawData(): prototype.dataCollection {
         return (this.luaState.getGlobal('data.raw') || {}) as unknown as prototype.dataCollection;
+    }
+
+    /**
+     * Apply settings that will be retrievable by mods
+     * @param settings Settings to apply
+     */
+    public setSettings(settings: SettingsData) {
+        this.mergeSettings(this.settings.global, settings.global);
+        this.mergeSettings(this.settings.startup, settings.startup);
+        this.mergeSettings(this.settings.player_default, settings.player);
+    }
+
+    private mergeSettings(settings: Record<string, runtime.ModSetting>, values?: Record<string, SettingValue>)
+    {
+        for(let key in values)
+        {
+            settings[key] = { value: values[key]};
+        }
     }
 
     private runModFile(modName: string, fileName: string) {
