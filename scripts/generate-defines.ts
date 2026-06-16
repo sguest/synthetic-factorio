@@ -1,11 +1,23 @@
-// download https://lua-api.factorio.com/latest/prototype-api.json and put it in temp/prototype-api.json
-// todo - automate this
-
 import * as fs from 'fs';
+import path from 'path';
+import { pipeline } from 'stream';
+import { promisify } from 'util';
 
-var contents = fs.readFileSync(import.meta.dirname + '/../temp/prototype-api.json', 'utf-8');
+const streamPipeline = promisify(pipeline);
+const response = await fetch('https://lua-api.factorio.com/latest/prototype-api.json');
 
-var prototypes = JSON.parse(contents)
+if(!response.ok || !response.body)
+{
+    throw new Error('Failed to download prototype API');
+}
+
+const filePath = path.join(import.meta.dirname, '../temp/prototype-api.json')
+
+await streamPipeline(response.body, fs.createWriteStream(filePath));
+
+const contents = fs.readFileSync(filePath, 'utf-8');
+
+const prototypes = JSON.parse(contents)
 
 let output = 'defines = {}\n';
 
