@@ -198,6 +198,14 @@ export class FactorioEngine
         }
         const modOrder: string[] = ['core'];
 
+        for(const modName of this.mods) {
+            const dependencies = modGraph[modName];
+            const unmetDeps = dependencies.filter(d => !this.mods.includes(d))
+            if(unmetDeps.length) {
+                throw new Error(`Mod ${modName} is missing dependencies ${unmetDeps}`)
+            }
+        }
+
         let finished = false;
 
         while(!finished) {
@@ -216,7 +224,7 @@ export class FactorioEngine
             }
 
             if(!targetMod) {
-                throw new Error('Circular dependency detected');
+                throw new Error(`Circular dependency detected, failed to finish resolving ${JSON.stringify(modGraph)}`);
             }
 
             modOrder.push(targetMod);
@@ -262,18 +270,24 @@ export class FactorioEngine
 
     private setModContext(modName: string) {
         this.setPackagePaths(
-            `${this.modDir}/__${modName}__/?.lua`,  // default import path, when a mod imports files relative to its own root
-            `${this.modDir}/__core__/lualib/?.lua`, // lualib files are available to import by name to all mods
+            // This is the main import path. The engine will try to rewrite mods to match this path first, making them relative to whatever mod's file is currently running
+            // When a mod imports from another mod via __modname__.path syntax, that mod is injected at the root
+            // See require_handler.lua for more
             `${this.modDir}/?.lua`,                 // importing from other mods is allowed, using the __modname__/path syntax
-            `${this.modDir}/__base__/?.lua`,        // Some mods require from vanilla mods, so add them back in as lower priority
+            // These all become active in the "second attempt" import if the first one fails
+            `${this.modDir}/__core__/lualib/?.lua`, // lualib files are available to import by name to all mods
+            `${this.modDir}/__base__/?.lua`,        // Some mods require from vanilla mods without specifying modname, which Factorio allows, so add them back in as lower priority
             `${this.modDir}/__space-age__/?.lua`,
             `${this.modDir}/__elevated-rails__/?.lua`,
             `${this.modDir}/__quality__/?.lua`,
+            `${this.modDir}/__recycler__/?.lua`,
         );
-        this.luaState.evalFile('util_scripts/clear_imports.lua');
+
+        // Used by require_handler.lua to keep track of the current "state"
+        this.luaState.eval(`current_mod_root_path = '${modName}'`)
 
         // see require_handler.lua
-        if(modName === 'core' || modName === 'base' || modName === 'quality' || modName === 'elevated-rails' || modName === 'space-age') {
+        if(modName === 'core' || modName === 'base' || modName === 'quality' || modName === 'recycler' || modName === 'elevated-rails' || modName === 'space-age') {
             this.luaState.setGlobal('suppress_require_errors', true);
         }
         else

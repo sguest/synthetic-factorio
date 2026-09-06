@@ -41,7 +41,8 @@ export function getDependencies(modDir: string) {
             deps.incompatible.push(parts[1]);
         }
         // Hidden or non-hidden optional deps are equivalent here as they're only a mod portal concept
-        else if(parts[0] === '?' || parts[0] === '(?)')
+        // Recommended optional is also functionally equivalent to optional for our purposes
+        else if(parts[0] === '?' || parts[0] === '(?)' || parts[0] === '+')
         {
             deps.optional.push(parts[1]);
         }

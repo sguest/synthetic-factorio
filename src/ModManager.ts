@@ -7,7 +7,7 @@ import { glob } from 'glob';
 import semverCompare from 'semver-compare';
 import { pipeline } from 'node:stream';
 import extractZip from 'extract-zip';
-import { getDependencies } from './modInfoUtil.ts';
+import { getDependencies, getModInfo } from './modInfoUtil.ts';
 import { modDir, workingDir } from './defaultValues.ts';
 
 interface ApiModInfo {
@@ -74,7 +74,7 @@ export interface ModPortalDownloadOptions extends ModDownloadOptions {
     omitDependencies?: string[];
 }
 
-const vanillaMods = ['core', 'base', 'quality', 'elevated-rails', 'space-age'];
+const vanillaMods = ['core', 'base', 'quality', 'recycler', 'elevated-rails', 'space-age'];
 
 /**
  * Utility class to download/install mods so they can be found by FactorioEngine
@@ -204,15 +204,15 @@ export class ModManager
 
             let modDownloadUrl: string;
 
-            if(options?.version) {
-                let url = modInfo.releases.find(r => r.version === options.version)?.download_url;
+            if(targetVersion) {
+                let url = modInfo.releases.find(r => r.version === targetVersion)?.download_url;
                 if(url)
                 {
                     modDownloadUrl = url
                 }
                 else
                 {
-                    throw new Error(`Cannot find version ${options.version} of mod ${modName}`);
+                    throw new Error(`Cannot find version ${targetVersion} of mod ${modName}`);
                 }
             }
             else
@@ -239,7 +239,16 @@ export class ModManager
             await streamPipeline(response.body, createWriteStream(zipPath));
         }
 
-        await this.installZipMod(modName, zipPath, options);
+        let isOutdated = false;
+        const targetPath = this.getModPath(modName);
+        if(existsSync(targetPath) && targetVersion) {
+            const modInfo = getModInfo(targetPath);
+            if(modInfo.version != targetVersion) {
+                isOutdated = true;
+            }
+        }
+
+        await this.installZipMod(modName, zipPath, { ...options, clearCache : isOutdated ? true : options?.clearCache });
 
         if(!options?.skipDependencies)
         {
@@ -247,7 +256,7 @@ export class ModManager
 
             for(let dependency of dependencies.required) {
                 if(!vanillaMods.includes(dependency) && !options?.omitDependencies?.includes(dependency)) {
-                    this.installPortalMod(dependency, { ...options, version: undefined })
+                    await this.installPortalMod(dependency, { ...options, version: undefined })
                 }
             }
         }
@@ -270,7 +279,7 @@ export class ModManager
         const targetPath = this.getModPath(modName);
         if(existsSync(targetPath) && options?.clearCache)
         {
-            rmSync(targetPath);
+            rmSync(targetPath, { recursive: true});
         }
         if(!existsSync(targetPath)) {
             const unzipDir = path.join(this.workingDir, 'unzip');
