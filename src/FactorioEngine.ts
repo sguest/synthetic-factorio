@@ -49,7 +49,7 @@ export class FactorioEngine
     public readonly mods: string[];
     public readonly modDir: string;
 
-    private settings: SettingsHolder;
+    public settings: SettingsHolder;
     private ignoredDependencies: string[];
     private logHandler: (message: string) => void;
 

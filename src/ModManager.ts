@@ -91,6 +91,7 @@ export class ModManager
 
     /**
      * Download all vanilla "mod" data from https://github.com/wube/factorio-data
+     * Requires git to be available at the command line
      * @param options Mod Installation options
      */
     public async installVanillaMods(options?: ModDownloadOptions)

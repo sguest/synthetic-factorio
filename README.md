@@ -16,13 +16,14 @@ await manager.installPortalMod('SimpleSeablock');
 manager.installDirectoryMod('my-mod', './my-mod-files', { clearCache: true });
 
 // initialize the synthetic factorio engine and specify the mods that should be active
+// vanilla "mods" need to be specified, including "base", however "core" does not need to be listed
 const engine = new FactorioEngine({
     mods: ['base', 'space-age', 'quality', 'recycler', 'elevated-rails', 'my-mod']
 });
 // run all mods through their settings phase
 engine.runSettingsPhase();
 // customize settings for your specific test run
-engine.setSettings({'my-mod-setting': true});
+engine.setSettings({ startup: { 'my-mod-setting': true } });
 // run all mods through their data phase
 engine.runDataPhase();
 
