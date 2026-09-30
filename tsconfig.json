@@ -1,6 +1,17 @@
 {
     "compilerOptions": {
         "types": ["factorio-types", "node"],
-        "allowImportingTsExtensions": true
-    }
+        "allowImportingTsExtensions": true,
+        "rewriteRelativeImportExtensions": true,
+        "paths": {
+            "*": ["./*"]
+        },
+        "outDir": "dist",
+        "rootDir": "src",
+        "skipLibCheck": true,
+        "declaration": true,
+    },
+    "include": [
+        "src/**/*.ts"
+    ]
 }

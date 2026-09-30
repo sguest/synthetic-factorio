@@ -5,11 +5,18 @@
   "license": "ISC",
   "author": "Spencer Guest",
   "type": "module",
-  "main": "index.ts",
   "scripts": {
     "test": "vitest",
-    "test:ci": "vitest run"
+    "test:ci": "vitest run",
+    "build": "tsc"
   },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "util_scripts/**/*.lua"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "dependencies": {
     "env-paths": "^4.0.0",
     "extract-zip": "^2.0.1",

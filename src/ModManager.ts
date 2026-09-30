@@ -127,7 +127,7 @@ export class ModManager
         const targetPath = this.getModPath(modName);
         if(existsSync(targetPath) && options?.clearCache)
         {
-            rmSync(targetPath);
+            rmSync(targetPath, { recursive: true });
         }
         if(!existsSync(targetPath)) {
             cpSync(sourcePath, targetPath, { recursive: true });

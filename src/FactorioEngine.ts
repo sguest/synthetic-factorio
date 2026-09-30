@@ -1,9 +1,10 @@
 import { LuaState } from 'lua-state';
 import type { LuaValue } from 'lua-state'
 import { existsSync } from 'node:fs';
-import path from 'node:path';
+import path, { dirname } from 'node:path';
 import { modDir } from './defaultValues.ts';
 import { getDependencies, getModInfo } from './modInfoUtil.ts';
+import { fileURLToPath } from 'node:url';
 
 export interface FactorioEngineOptions {
     /**
@@ -39,6 +40,9 @@ interface SettingsHolder {
     startup: Record<string, runtime.ModSetting>
     get_player_settings: () => Record<string, runtime.ModSetting>
 }
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 /**
  * A synthetic factorio runtime to run lua scripts and inspect their results
@@ -253,9 +257,10 @@ export class FactorioEngine
     private initLua() {
         const luaState = new LuaState();
         luaState.setGlobal('log', s => this.logHandler(s as string));
-        luaState.evalFile('util_scripts/data_setup.lua');
-        luaState.evalFile('util_scripts/defines.lua');
-        luaState.evalFile('util_scripts/require_handler.lua');
+        const utilPath = path.join(__dirname, '../util_scripts');
+        luaState.evalFile(path.join(utilPath, 'data_setup.lua'));
+        luaState.evalFile(path.join(utilPath, 'defines.lua'));
+        luaState.evalFile(path.join(utilPath, 'require_handler.lua'));
 
         /*Lua 5.3 deprecates math.atan2, but Factorio is on Lua 5.2.1
         Could downgrade Lua, but for now this patch seems to do it */

@@ -142,4 +142,11 @@ describe('FactorioEngine', () => {
             }).toThrow();
         });
     });
+
+    it('should preserve errors', () => {
+        expect(() => {
+            const engine = getEngine(['mod-error']);
+            engine.runDataPhase();
+        }).toThrow("attempt to index a nil value (global 'non_global')");
+    })
 });
