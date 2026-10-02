@@ -44,6 +44,18 @@ interface SettingsHolder {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Special event data type with name and tick made optional so the engine can default it
+// Much better than the need to set them each time since they're both required
+type EventPayload = Omit<runtime.EventData, "name" | "tick"> & Partial<Pick<runtime.EventData, "name" | "tick">>
+
+type EventHandler = (payload: EventPayload) => void;
+
+interface ModRuntimeContext {
+    eventHandlers: { [key in defines.events]?: EventHandler[] };
+    initHandlers: Array<() => void>;
+    storage: { [key: string] : any };
+}
+
 /**
  * A synthetic factorio runtime to run lua scripts and inspect their results
  */
@@ -54,8 +66,11 @@ export class FactorioEngine
     public readonly modDir: string;
 
     public settings: SettingsHolder;
+    private remoteInterfaces: { [key: string]: { [key: string]: true } }; 
+    private remoteHandlers: { [key: string]: { [key: string] : (...args: any[]) => any }};
     private ignoredDependencies: string[];
     private logHandler: (message: string) => void;
+    private modRuntimes: { [key: string]: ModRuntimeContext } = {};
 
     constructor(options: FactorioEngineOptions) {
         this.luaState = this.initLua();
@@ -70,13 +85,16 @@ export class FactorioEngine
             // This should handle proper per-player settings, good enough for now
             get_player_settings: () => settings.player_default,
         };
+        this.remoteInterfaces = {};
+        this.remoteHandlers = {};
     }
 
     /**
      * Run the settings phase for all mods in dependency order and populate settings with the resulting defaults
+     * @param mods Run the specified mods in order. Omit to run all mods in dependency order.
      */
-    public runSettingsPhase() {
-        const modOrder = this.getModOrder();
+    public runSettingsPhase(mods: string[] | undefined = undefined) {
+        const modOrder = mods || this.getModOrder();
 
         this.luaState.setGlobal('mods', this.buildModsGlobal());
 
@@ -116,22 +134,23 @@ export class FactorioEngine
 
     /**
      * Run the data phase for all mods in dependency order
+     * @param mods Run the specified mods in order. Omit to run all mods in dependency order.
      */
-    public runDataPhase() {
+    public runDataPhase(mods: string[] | undefined = undefined) {
         this.luaState.setGlobal('settings', { startup: this.settings?.startup as unknown as LuaValue });
         this.luaState.setGlobal('mods', this.buildModsGlobal());
 
-        const modOrder = this.getModOrder();
+        const modOrder = mods || this.getModOrder();
 
-        for(let mod of modOrder) {
+        for(const mod of modOrder) {
             this.runModFile(mod, 'data.lua');
         }
 
-        for(let mod of modOrder) {
+        for(const mod of modOrder) {
             this.runModFile(mod, 'data-updates.lua');
         }
 
-        for(let mod of modOrder) {
+        for(const mod of modOrder) {
             this.runModFile(mod, 'data-final-fixes.lua');
         }
 
@@ -139,8 +158,8 @@ export class FactorioEngine
     }
 
     private buildModsGlobal() {
-        let modsGlobal: { [key: string]: string } = {};
-        for(let modName of this.mods) {
+        const modsGlobal: { [key: string]: string } = {};
+        for(const modName of this.mods) {
             modsGlobal[modName] = this.getModInfo(modName).version;
         }
         return modsGlobal;
@@ -166,10 +185,99 @@ export class FactorioEngine
 
     private mergeSettings(settings: Record<string, runtime.ModSetting>, values?: Record<string, SettingValue>)
     {
-        for(let key in values)
+        for(const key in values)
         {
             settings[key] = { value: values[key]};
         }
+    }
+
+    /**
+     * Run the control phase for all mods in dependency order
+     * @param mods Run the specified mods in order. Omit to run all mods in dependency order.
+     */
+    public runControlPhase(mods: string[] | undefined = undefined) {
+        const modOrder = mods || this.getModOrder();
+
+        for(const mod of modOrder) {
+            this.initModRuntime(mod);
+            this.luaState.setGlobal('script', {
+                on_init: (handler: () => void) => {
+                    this.modRuntimes[mod].initHandlers.push(handler);
+                },
+                on_event: (eventType: defines.events, handler: EventHandler) => {
+                    this.modRuntimes[mod].eventHandlers[eventType] ||= [];
+                    this.modRuntimes[mod].eventHandlers[eventType].push(handler);
+                },
+            } as any);
+
+            this.luaState.eval(`script.mod_name = '${mod}'`);
+            this.runModFile(mod, 'control.lua');
+            this.postModRuntime(mod);
+        }
+    }
+
+    /**
+     * Trigger registered on_init handlers for all mods in dependency order
+     * @param mods Run the specified mods in order. Omit to run all mods in dependency order.
+     */
+    public triggerInit(mods: string[] | undefined = undefined) {
+        const modOrder = mods || this.getModOrder();
+
+        for(const mod of modOrder) {
+            this.initModRuntime(mod);
+            const handlers = this.modRuntimes[mod].initHandlers || [];
+
+            for(const handler of handlers)
+            {
+                handler();
+            }
+            this.postModRuntime(mod);
+        }
+    }
+
+    /**
+     * Trigger an event for all mods in dependency order
+     * @param eventType The event type to trigger
+     * @param payload The event payload
+     * @param mods Run the specified mods in order. Omit to run all mods in dependency order.
+     */
+    public triggerEvent<T extends EventPayload>(eventType: defines.events, payload: T, mods: string[] | undefined = undefined) {
+        const modOrder = mods || this.getModOrder();
+
+        for(const mod of modOrder) {
+            this.initModRuntime(mod);
+            const handlers = this.modRuntimes[mod].eventHandlers[eventType] || [];
+            payload.name ??= eventType;
+            payload.tick ??= 0;
+
+            for(let handler of handlers)
+            {
+                handler(payload);
+            }
+            this.postModRuntime(mod);
+        }
+    }
+
+    public registerRemote(iface: string, fn: string, handler: (...args: any[]) => any) {
+        this.remoteInterfaces[iface] ||= {};
+        this.remoteInterfaces[iface][fn] = true;
+        this.remoteHandlers[iface] ||= {};
+        this.remoteHandlers[iface][fn] = handler;
+    }
+
+    private initModRuntime(mod: string) {
+        this.modRuntimes[mod] ??= { eventHandlers: {}, initHandlers: [], storage: {}};
+        this.luaState.setGlobal('storage', this.modRuntimes[mod].storage);
+        this.luaState.setGlobal('remote', {
+            interfaces: this.remoteInterfaces,
+            call: (iface: string, fn: string, ...args: any[]) => {
+                return this.remoteHandlers[iface][fn](...args);
+            }
+        } as any);
+    }
+
+    private postModRuntime(mod: string) {
+        this.modRuntimes[mod].storage = this.luaState.getGlobal('storage') as { [key: string]: any };
     }
 
     private runModFile(modName: string, fileName: string) {

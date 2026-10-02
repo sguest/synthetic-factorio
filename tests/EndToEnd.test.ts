@@ -3,19 +3,20 @@ import { ModManager } from '../src/ModManager';
 import { FactorioEngine } from '../src/FactorioEngine';
 
 describe('End-to-end test', () => {
-    it('should download vanilla mods and run data and settings phase', async () => {
+    it('should download vanilla mods and SimpleSeablock, and run data and settings phase', async () => {
         const manager = new ModManager();
         await manager.installVanillaMods();
+        await manager.installPortalMod('SimpleSeablock');
 
         const engine = new FactorioEngine({
-            mods: ['base', 'space-age', 'quality', 'recycler', 'elevated-rails']
+            mods: ['base', 'space-age', 'quality', 'recycler', 'elevated-rails', 'SimpleSeablock']
         });
         engine.runSettingsPhase();
         engine.runDataPhase();
 
         const data = engine.getRawData();
 
-        // A few arbitrary assertions from the various vanilla mods. The main purpose of this test is that it doesn't crash.
+        // A few arbitrary assertions from the various mods. The main purpose of this test is that it doesn't crash.
         expect(data.item.pumpjack).toEqual(expect.objectContaining({
             name: 'pumpjack',
             'place_result': 'pumpjack',
@@ -49,6 +50,12 @@ describe('End-to-end test', () => {
             type: 'planet',
             'solar_power_in_space': 600,
             gravity_pull: 10,
+        }));
+
+        expect(data.plant['ashland-tree-plant']).toEqual(expect.objectContaining({
+            name: 'ashland-tree-plant',
+            corpse: 'ashland-lichen-tree-stump',
+            max_health: 50,
         }));
     });
 })

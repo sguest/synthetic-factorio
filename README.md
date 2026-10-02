@@ -29,4 +29,17 @@ engine.runDataPhase();
 
 // read the data.raw collection and run test assertions
 console.log(engine.getRawData()['item']['stone-furnace']);
+
+// run control phase - NOTE: control phase support is currently very limited
+engine.runControlPhase(['my-mod']);
+
+// run any registered on_init callbacks
+engine.triggerInit();
+
+// trigger an event with the payload of your choice
+// Partial on the generic and casts on the sub-properties are recommended to avoid the need to setup the entire event payload
+engine.triggerEvent<Partial<runtime.on_chunk_generated>>(defines.events.on_chunk_generated, {
+    position: { x: 0, y: 0 },
+    surface: { name: 'nauvis' } as runtime.LuaSurface,
+});
 ```

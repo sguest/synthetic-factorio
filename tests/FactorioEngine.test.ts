@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { FactorioEngine, FactorioEngineOptions } from '../src/FactorioEngine';
 import path from 'path';
 
@@ -148,5 +148,39 @@ describe('FactorioEngine', () => {
             const engine = getEngine(['mod-error']);
             engine.runDataPhase();
         }).toThrow("attempt to index a nil value (global 'non_global')");
-    })
+    });
+
+    describe('control phase', () => {
+        it('should run registered on_init functions', () => {
+            const engine = getEngine(['mod-a']);
+            engine.runControlPhase();
+            engine.triggerInit();
+            expect(logMessages).toContain('init from mod-a');
+        });
+
+        it('should run registered event handlers', () => {
+            const engine = getEngine(['mod-a']);
+            engine.runControlPhase();
+            engine.triggerEvent('custom-event', { value: 'my-value' });
+            expect(logMessages).toContain('custom event from mod-a with payload my-value');
+        });
+
+        it('should maintain storage between runs', () => {
+            const engine = getEngine(['mod-b']);
+            engine.runControlPhase();
+            engine.triggerEvent('custom-event', {});
+            engine.triggerEvent('custom-event', {});
+            expect(logMessages).toContain('val is 1.0');
+            expect(logMessages).toContain('val is 2.0');
+        });
+
+        it('should register and call remotes', () => {
+            const engine = getEngine(['mod-b']);
+            const remoteFn = vi.fn().mockReturnValue('some-value');
+            engine.registerRemote('some-interface', 'some-function', remoteFn);
+            engine.runControlPhase();
+            engine.triggerInit();
+            expect(logMessages).toContain('some-value from interface');
+        });
+    });
 });
