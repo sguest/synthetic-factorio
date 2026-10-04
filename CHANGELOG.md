@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/sguest/synthetic-factorio/compare/synthetic-factorio-v0.2.0...synthetic-factorio-v0.2.1) (2026-10-04)
+
+
+### Bugfixes
+
+* update npm for trusted publishing ([ad953c9](https://github.com/sguest/synthetic-factorio/commit/ad953c996db7d75ecb3e15a8219f25b33fc42e81))
+
 ## [0.2.0](https://github.com/sguest/synthetic-factorio/compare/synthetic-factorio-v0.1.0...synthetic-factorio-v0.2.0) (2026-10-04)
 
 

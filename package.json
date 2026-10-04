@@ -1,6 +1,6 @@
 {
   "name": "synthetic-factorio",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Synthetic Factorio runtime for unit testing",
   "license": "ISC",
   "author": "Spencer Guest",
