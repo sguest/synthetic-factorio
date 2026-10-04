@@ -1,5 +1,7 @@
 # Synthetic Factorio
 
+<!--Hidden version bump 1-->
+
 Synthetic Factorio nodeJS runtime for unit testing mods.
 
 This is **not** a Factorio emulator, it is not a game that can be played.
