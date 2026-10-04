@@ -35,6 +35,14 @@ jobs:
       - name: Setup node
         if: ${{ steps.release-please.outputs.release_created }}
         uses: actions/setup-node@v6
+        with:
+          node-version: 26
+          cache: 'yarn'
+          registry-url: 'https://registry.npmjs.org'
+      # https://github.com/MetroStar/comet/blob/7a9cce0013196057881990aeddbaafdaa6c9fadc/.github/workflows/publish-package.yaml#L35
+      - name: Update NPM
+        if: ${{ steps.release-please.outputs.release_created }}
+        run: npm install -g npm@latest
       - name: npm ci
         if: ${{ steps.release-please.outputs.release_created }}
         run: npm ci
