@@ -1,0 +1,62 @@
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@v3
+        id: generate-token
+        with:
+          client-id: ${{ secrets.TOKEN_APP_ID }}
+          private-key: ${{ secrets.TOKEN_APP_SECRET }}
+      - uses: google-github-actions/release-please-action@v4
+        id: release-please
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+      - uses: actions/checkout@v7
+        if: ${{ steps.release-please.outputs.pr }}
+        with:
+          ref: ${{ fromJson(steps.release-please.outputs.pr).headBranchName }}
+          token: ${{ steps.generate-token.outputs.token }}
+      - name: Checkout
+        if: ${{ steps.release-please.outputs.release_created }}
+        uses: actions/checkout@v7
+      - name: Setup node
+        if: ${{ steps.release-please.outputs.release_created }}
+        uses: actions/setup-node@v6
+      - name: npm ci
+        if: ${{ steps.release-please.outputs.release_created }}
+        run: npm ci
+      - name: npm run build
+        if: ${{ steps.release-please.outputs.release_created }}
+        run: npm run build
+      - name: npm pack
+        run: npm pack
+      - name: Read package.json
+        id: read-package-json
+        uses: juliangruber/read-file-action@v1
+        with:
+          path: ./package.json
+      - name: Get current version
+        id: current-version
+        run: echo "PACKAGE_VERSION=${{ fromJson(steps.read-package-json.outputs.content).version}}" >> "$GITHUB_OUTPUT"
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "synthetic-factorio-${{ steps.current-version.outputs.PACKAGE_VERSION }}.tgz"
+          commit: main
+          tag: v${{ steps.current-version.outputs.PACKAGE_VERSION }}
+          name: v${{ steps.current-version.outputs.PACKAGE_VERSION }}
+          body: Release v${{ steps.current-version.outputs.PACKAGE_VERSION }}
+      - name: Publish to NPM
+        run: npm publish

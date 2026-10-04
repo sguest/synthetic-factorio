@@ -1,0 +1,15 @@
+{
+    "packages": { ".": {} },
+    "release-type": "node",
+    "changelog-sections": [
+        { "type": "feat", "section": "Features" },
+        { "type": "feature", "section": "Features" },
+        { "type": "fix", "section": "Bugfixes" },
+        { "type": "perf", "section": "Optimizations" },
+        { "type": "compat", "section": "Compatibility" },
+        { "type": "compatibility", "section": "Compatibility "},
+        { "type": "ci", "section": "CI Builds", "hidden": true },
+        { "type": "chore", "section": "Miscellaneous Chores", "hidden": true },
+        { "type": "test", "section": "Testing", "hidden": true }
+    ]
+}
