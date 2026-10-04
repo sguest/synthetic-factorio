@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/sguest/synthetic-factorio/compare/synthetic-factorio-v0.2.2...synthetic-factorio-v0.2.3) (2026-10-04)
+
+
+### Bugfixes
+
+* release-please permissions ([306d1e5](https://github.com/sguest/synthetic-factorio/commit/306d1e5e875f0bba13ec28e928af051c48eb8d57))
+
 ## [0.2.2](https://github.com/sguest/synthetic-factorio/compare/synthetic-factorio-v0.2.1...synthetic-factorio-v0.2.2) (2026-10-04)
 
 
