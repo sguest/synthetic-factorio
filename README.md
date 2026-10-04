@@ -1,6 +1,6 @@
 # Synthetic Factorio
 
-<!--Hidden version bump 3-->
+<!--Hidden version bump 4-->
 
 Synthetic Factorio nodeJS runtime for unit testing mods.
 
