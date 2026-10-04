@@ -5,6 +5,7 @@
   "license": "ISC",
   "author": "Spencer Guest",
   "type": "module",
+  "repository": "https://github.com/sguest/synthetic-factorio",
   "scripts": {
     "test": "vitest",
     "test:ci": "vitest run",
