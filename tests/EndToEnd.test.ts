@@ -4,7 +4,7 @@ import { FactorioEngine } from '../src/FactorioEngine';
 
 describe('End-to-end test', () => {
     it('should download vanilla mods and SimpleSeablock, and run data and settings phase', async () => {
-        const manager = new ModManager();
+        const manager = new ModManager({ logger: console.log });
         await manager.installVanillaMods();
         await manager.installPortalMod('SimpleSeablock');
 

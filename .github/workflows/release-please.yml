@@ -63,4 +63,5 @@ jobs:
           name: v${{ steps.current-version.outputs.PACKAGE_VERSION }}
           body: Release v${{ steps.current-version.outputs.PACKAGE_VERSION }}
       - name: Publish to NPM
+        if: ${{ steps.release-please.outputs.release_created }}
         run: npm publish
