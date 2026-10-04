@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/sguest/synthetic-factorio/compare/synthetic-factorio-v0.2.1...synthetic-factorio-v0.2.2) (2026-10-04)
+
+
+### Bugfixes
+
+* release pipeline ([a605e17](https://github.com/sguest/synthetic-factorio/commit/a605e172a36489f01b0d9997361970824f05a877))
+
 ## [0.2.1](https://github.com/sguest/synthetic-factorio/compare/synthetic-factorio-v0.2.0...synthetic-factorio-v0.2.1) (2026-10-04)
 
 
