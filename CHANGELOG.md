@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/sguest/synthetic-factorio/compare/synthetic-factorio-v0.2.3...synthetic-factorio-v0.2.4) (2026-10-04)
+
+
+### Bugfixes
+
+* set repositroy in package.json ([db61f16](https://github.com/sguest/synthetic-factorio/commit/db61f1606696ce9d98af2c3cb9efbf4fc47a4cdb))
+
 ## [0.2.3](https://github.com/sguest/synthetic-factorio/compare/synthetic-factorio-v0.2.2...synthetic-factorio-v0.2.3) (2026-10-04)
 
 
