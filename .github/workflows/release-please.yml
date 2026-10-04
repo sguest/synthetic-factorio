@@ -42,16 +42,20 @@ jobs:
         if: ${{ steps.release-please.outputs.release_created }}
         run: npm run build
       - name: npm pack
+        if: ${{ steps.release-please.outputs.release_created }}
         run: npm pack
       - name: Read package.json
+        if: ${{ steps.release-please.outputs.release_created }}
         id: read-package-json
         uses: juliangruber/read-file-action@v1
         with:
           path: ./package.json
       - name: Get current version
+        if: ${{ steps.release-please.outputs.release_created }}
         id: current-version
         run: echo "PACKAGE_VERSION=${{ fromJson(steps.read-package-json.outputs.content).version}}" >> "$GITHUB_OUTPUT"
       - uses: ncipollo/release-action@v1
+        if: ${{ steps.release-please.outputs.release_created }}
         with:
           artifacts: "synthetic-factorio-${{ steps.current-version.outputs.PACKAGE_VERSION }}.tgz"
           commit: main
