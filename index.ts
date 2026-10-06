@@ -1,6 +1,7 @@
 import { FactorioEngine } from './src/FactorioEngine.ts';
 import { ModManager } from './src/ModManager.ts';
 import { loadEnvFile } from 'node:process';
+import { defines } from './src/defines.ts';
 
 loadEnvFile();
 
@@ -28,7 +29,7 @@ const createCalls: any[] = [];
 const createEntity = (entity: any) => {
     createCalls.push(entity);
 };
-engine.triggerEvent<Partial<runtime.on_chunk_generated>>(20 as defines.events.on_chunk_generated, {
+engine.triggerEvent<Partial<runtime.on_chunk_generated>>(defines.events.on_chunk_generated, {
     position: { x: 0, y: 0 },
     surface: { name: 'nauvis', create_entity: createEntity } as runtime.LuaSurface,
 });

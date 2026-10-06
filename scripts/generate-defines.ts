@@ -19,32 +19,59 @@ const contents = fs.readFileSync(filePath, 'utf-8');
 
 const prototypes = JSON.parse(contents)
 
-let output = 'defines = {}\n';
+let luaOutput = 'defines = {}\n';
+let tsOutput = 'export const defines = {\n';
 
-const writeDefine = (define: any, prefix = 'defines') => {
+const writeLuaDefine = (define: any, prefix = 'defines') => {
     const defineName = `${prefix}['${define.name}']`;
 
     if(define.values || define.subkeys) {
-        output += `${defineName} = {}\n`;
+        luaOutput += `${defineName} = {}\n`;
 
         for(let value of define.values ?? []) {
-            output += `${defineName}['${value.name}'] = ${value.order}\n`;
+            luaOutput += `${defineName}['${value.name}'] = ${value.order}\n`;
         }
 
         for(let subkey of define.subkeys ?? []) {
-            writeDefine(subkey, defineName);
+            writeLuaDefine(subkey, defineName);
         }
     }
     else {
-        output += `${defineName} = ${define.order}\n`;
+        luaOutput += `${defineName} = ${define.order}\n`;
     }
 
 
-    output += '\n';
+    luaOutput += '\n';
+}
+
+const writeTsDefine = (define: any, indent = '    ', prefix = 'defines') => {
+    if(define.values || define.subkeys) {
+        tsOutput += `${indent}'${define.name}': {\n`
+
+        for(let value of define.values ?? []) {
+            tsOutput += `${indent}    '${value.name}': ${value.order},\n`
+        }
+
+        for(let subkey of define.subkeys ?? []) {
+            writeTsDefine(subkey, indent + '    ');
+        }
+
+        tsOutput += `${indent}},\n`
+    }
+    else
+    {
+        tsOutput += `${indent}'${define.name}': ${define.order},\n`
+    }
+
+    tsOutput += '\n';
 }
 
 for(let define of prototypes.defines) {
-    writeDefine(define);
+    writeLuaDefine(define);
+    writeTsDefine(define)
 }
 
-fs.writeFileSync(import.meta.dirname + '/../util_scripts/defines.lua', output);
+tsOutput += '}';
+
+fs.writeFileSync(import.meta.dirname + '/../util_scripts/defines.lua', luaOutput);
+fs.writeFileSync(import.meta.dirname + '/../src/defines.ts', tsOutput);

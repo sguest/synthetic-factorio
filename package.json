@@ -9,7 +9,8 @@
   "scripts": {
     "test": "vitest",
     "test:ci": "vitest run",
-    "build": "tsc"
+    "build": "tsc",
+    "generate-defines": "node scripts/generate-defines.ts"
   },
   "files": [
     "dist/**/*.js",

@@ -7,7 +7,9 @@ Synthetic Factorio nodeJS runtime for unit testing mods.
 This is **not** a Factorio emulator, it is not a game that can be played.
 
 ```typescript
-import { ModManager, FactorioEngine } from 'synthetic-factorio';
+// defines are imported from synthetic-factorio not factorio-types.
+// In factorio-types they're an ambient declaration, in synthetic-factorio they're a usable object.
+import { ModManager, FactorioEngine, defines } from 'synthetic-factorio';
 
 const manager = new ModManager();
 // install vanilla "mod" data from https://github.com/wube/factorio-data (requires git CLI)
