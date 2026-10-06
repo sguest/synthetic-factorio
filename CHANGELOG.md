@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/sguest/synthetic-factorio/compare/synthetic-factorio-v0.2.4...synthetic-factorio-v0.3.0) (2026-10-06)
+
+
+### Features
+
+* export defines ([e0ef199](https://github.com/sguest/synthetic-factorio/commit/e0ef199f172d882bc8e0a596f8dced234c045347))
+
+
+### Bugfixes
+
+* handle data.extend as well as data:extend ([e3263e8](https://github.com/sguest/synthetic-factorio/commit/e3263e8239da65c6a9717c51077443fa82528160))
+
 ## [0.2.4](https://github.com/sguest/synthetic-factorio/compare/synthetic-factorio-v0.2.3...synthetic-factorio-v0.2.4) (2026-10-04)
 
 
