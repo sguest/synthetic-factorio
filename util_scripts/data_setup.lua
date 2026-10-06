@@ -7,6 +7,10 @@ data = data or {}
 data.raw = data.raw or {}
 
 function data.extend(self, values)
+    -- Handle calling data.extend instead of data:extend
+    if(values == nil) then
+        values = self
+    end
     for i, value in ipairs(values) do
         -- space-age tries to extend on the string "./data/__space-age__/sound/ambient/space/interlude-6/interlude-6.lua" 
         -- (i.e. not a valid prototype object, just that string) so we need to gracefully handle invalid objects
