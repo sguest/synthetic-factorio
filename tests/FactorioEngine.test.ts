@@ -106,6 +106,18 @@ describe('FactorioEngine', () => {
         expect(logMessages).toContain('string setting is new-value');
     });
 
+    it('should handle multiple data formats', () => {
+        const engine = getEngine(['mod-extend']);
+
+        engine.runDataPhase();
+
+        const data = engine.getRawData();
+
+        expect(data.item['parentheses-item']).toEqual({ type: 'item', name: 'parentheses-item' });
+        expect(data.item['colon-item']).toEqual({ type: 'item', name: 'colon-item' });
+        expect(data.item['dot-item']).toEqual({ type: 'item', name: 'dot-item' });
+    })
+
     describe('mod graph validation', () => {
         it('should fail when a dependency is missing', () => {
             expect(() => {

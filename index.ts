@@ -11,10 +11,11 @@ await manager.installPortalMod('Krastorio2-spaced-out', { omitDependencies: ['Kr
 await manager.installPortalMod('space-is-fake', { omitDependencies: ['cr-commons'], checkLatest: true });
 await manager.installPortalMod('any-planet-start', { checkLatest: true });
 await manager.installPortalMod('bobores', { checkLatest: true });
+await manager.installPortalMod('dw-frozen-reaches', { omitDependencies: ['dredgeworks-graphics'] });
 
 var engine = new FactorioEngine({
-    mods: ['base', 'space-age', 'quality', 'recycler', 'elevated-rails', 'SimpleSeablock', 'space-is-fake', 'Krastorio2-spaced-out', 'Krastorio2', 'flib', 'bobores', 'boblibrary'],
-    ignoredDependencies: ['cr-commons', 'Krastorio2Assets', 'Krastorio2MenuSimulations', 'k2so-assets'],
+    mods: ['base', 'space-age', 'quality', 'recycler', 'elevated-rails', 'SimpleSeablock', 'space-is-fake', 'Krastorio2-spaced-out', 'Krastorio2', 'flib', 'bobores', 'boblibrary', 'dw-frozen-reaches', 'dredgeworks', 'stirling-generator'],
+    ignoredDependencies: ['cr-commons', 'Krastorio2Assets', 'Krastorio2MenuSimulations', 'k2so-assets', 'dredgeworks-graphics'],
     logHandler: () => {},
 });
 engine.runSettingsPhase();
