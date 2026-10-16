@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/sguest/synthetic-factorio/compare/synthetic-factorio-v0.3.0...synthetic-factorio-v0.4.0) (2026-10-16)
+
+
+### Features
+
+* defines for factorio 2.1.22 ([45b68f4](https://github.com/sguest/synthetic-factorio/commit/45b68f47dfe82cea1817f8bb708a4abc46f2d3e6))
+
 ## [0.3.0](https://github.com/sguest/synthetic-factorio/compare/synthetic-factorio-v0.2.4...synthetic-factorio-v0.3.0) (2026-10-06)
 
 
